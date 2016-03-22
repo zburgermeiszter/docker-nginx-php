@@ -1,18 +1,23 @@
-version: '2'
-services:
-  code:
-    build: ./code
-    volumes:
-      - ./code:/var/www/html
-  php:
-    build: ./php-fpm
-    volumes_from:
-      - code
-  nginx:
-    build: ./nginx
-    volumes_from:
-      - code
-    links:
-      - php:fpm
-    ports:
-      - 80:80
+app:
+  build: ./code
+  command: cat
+  stdin_open: true
+fpm:
+  build: ./php-fpm
+  tty: true
+  stdin_open: true
+  volumes_from:
+    - app
+  labels:
+    io.rancher.sidekicks: app
+nginx:
+  build: ./nginx
+  volumes_from:
+    - app
+    - fpm
+  links:
+    - fpm
+  ports:
+    - 9999:80
+  labels:
+    io.rancher.sidekicks: app, fpm
